@@ -1,6 +1,5 @@
 """loads and uploads data from and to bigquery"""
 from google.cloud import bigquery
-import seaborn as sns
 from penguin.params import *
 import pandas as pd
 
@@ -28,5 +27,24 @@ def upload_data(penguin_df: pd.DataFrame, bq_table: str, write_mode='WRITE_TRUNC
 
     job = client.load_table_from_dataframe(df, table, job_config=job_config)
 
-    result = job.result()
+    job.result()
     return f'✅ raw data saved to bigquery at {table}'
+
+
+def load_data(bq_table: str) -> pd.DataFrame:
+    """
+    This function has the purpose of querying the BQ dataset and returning a pandas DataFrame.
+
+    Parameters:
+    bq_table = Which table we query from is defined by this variable.
+    """
+    query = f"""
+    SELECT *
+    FROM {GCP_PROJECT}.{BQ_DATASET}.{bq_table}
+    """
+
+    client = bigquery.Client(project=GCP_PROJECT)
+    query_job = client.query(query)
+    result = query_job.result()
+    df = result.to_dataframe()
+    return df
