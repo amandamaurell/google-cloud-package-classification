@@ -2,8 +2,9 @@
 from google.cloud import bigquery
 import seaborn as sns
 from penguin.params import *
+import pandas as pd
 
-def upload_data(write_mode='WRITE_TRUNCATE'):
+def upload_data(penguin_df: pd.DataFrame, bq_table: str, write_mode='WRITE_TRUNCATE'):
     """
     This function uploads a dataframe to google bigquery with truncate mode.
     It creates a new table in case it doesn't exist yet.
@@ -15,17 +16,17 @@ def upload_data(write_mode='WRITE_TRUNCATE'):
 
     PROJECT = GCP_PROJECT
     DATASET = BQ_DATASET
-    TABLE = "penguin_raw"
+    TABLE = bq_table
 
     table = f"{PROJECT}.{DATASET}.{TABLE}"
 
-    penguin_df = sns.load_dataset('penguins')
+    df = penguin_df
 
     client = bigquery.Client()
 
     job_config = bigquery.LoadJobConfig(write_disposition=write_mode)
 
-    job = client.load_table_from_dataframe(penguin_df, table, job_config=job_config)
+    job = client.load_table_from_dataframe(df, table, job_config=job_config)
 
     result = job.result()
     return f'✅ raw data saved to bigquery at {table}'
